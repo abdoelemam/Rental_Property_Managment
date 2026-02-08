@@ -14,6 +14,7 @@ import unitsRoutes from './modules/units/units.routes';
 import leasesRoutes from './modules/leases/leases.routes';
 import invoicesRoutes from './modules/invoices/invoices.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
+import expensesRoutes from './modules/expenses/expenses.routes';
 
 // Import models to initialize associations
 import './DB/models';
@@ -50,6 +51,7 @@ app.use(`${API_PREFIX}/units`, unitsRoutes);
 app.use(`${API_PREFIX}/leases`, leasesRoutes);
 app.use(`${API_PREFIX}/invoices`, invoicesRoutes);
 app.use(`${API_PREFIX}/dashboard`, dashboardRoutes);
+app.use(`${API_PREFIX}/expenses`, expensesRoutes);
 
 // ============================================
 // Health Check

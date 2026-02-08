@@ -56,6 +56,63 @@ export class DashboardController {
             res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
         }
     });
+
+    // 🆕 Endpoints الجديدة
+    getRevenuePerProperty = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const year = req.query.year ? Number(req.query.year) : undefined;
+            const month = req.query.month ? Number(req.query.month) : undefined;
+            const data = await dashboardService.getRevenuePerProperty(req.user!.id, year, month);
+            res.status(200).json(successResponse('إيرادات كل عقار', data));
+        } catch (error: unknown) {
+            const err = error as { status?: number; message?: string };
+            res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
+        }
+    });
+
+    getExpensesBreakdown = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const year = req.query.year ? Number(req.query.year) : undefined;
+            const month = req.query.month ? Number(req.query.month) : undefined;
+            const data = await dashboardService.getExpensesBreakdown(req.user!.id, year, month);
+            res.status(200).json(successResponse('توزيع المصروفات', data));
+        } catch (error: unknown) {
+            const err = error as { status?: number; message?: string };
+            res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
+        }
+    });
+
+    getExpiringLeases = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const days = req.query.days ? Number(req.query.days) : 30;
+            const data = await dashboardService.getExpiringLeases(req.user!.id, days);
+            res.status(200).json(successResponse('العقود المقاربة على الانتهاء', data));
+        } catch (error: unknown) {
+            const err = error as { status?: number; message?: string };
+            res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
+        }
+    });
+
+    getOverdueInvoices = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const data = await dashboardService.getOverdueInvoices(req.user!.id);
+            res.status(200).json(successResponse('الفواتير المتأخرة', data));
+        } catch (error: unknown) {
+            const err = error as { status?: number; message?: string };
+            res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
+        }
+    });
+
+    getRecentActivity = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const limit = req.query.limit ? Number(req.query.limit) : 10;
+            const data = await dashboardService.getRecentActivity(req.user!.id, limit);
+            res.status(200).json(successResponse('النشاط الأخير', data));
+        } catch (error: unknown) {
+            const err = error as { status?: number; message?: string };
+            res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
+        }
+    });
 }
 
 export const dashboardController = new DashboardController();
