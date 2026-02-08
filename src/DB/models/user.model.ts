@@ -14,8 +14,9 @@ export interface UserAttributes {
     email: string;
     password: string;
     phone?: string;
+    avatar?: string; // صورة الـ Owner
     role: UserRole;
-    parentId?: number; // للمستخدمين اللي أضافهم الـ Owner
+    parentId?: number;
     isActive: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -29,6 +30,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     public email!: string;
     public password!: string;
     public phone?: string;
+    public avatar?: string;
     public role!: UserRole;
     public parentId?: number;
     public isActive!: boolean;
@@ -61,6 +63,10 @@ User.init(
         },
         phone: {
             type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        avatar: {
+            type: DataTypes.STRING(255),
             allowNull: true,
         },
         role: {

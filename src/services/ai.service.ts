@@ -8,7 +8,7 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export class AIService {
-    private model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    private model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     async analyzePropertyData(data: {
         totalIncome: number;

@@ -26,6 +26,22 @@ export class AuthController {
         }
     });
 
+    // تجديد الـ Token
+    refreshToken = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const { refreshToken } = req.body;
+            if (!refreshToken) {
+                res.status(400).json(errorResponse('Refresh Token مطلوب', 400));
+                return;
+            }
+            const result = await authService.refreshToken(refreshToken);
+            res.status(200).json(successResponse('تم تجديد الـ Token بنجاح', result));
+        } catch (error: unknown) {
+            const err = error as { status?: number; message?: string };
+            res.status(err.status || 500).json(errorResponse(err.message || 'خطأ في الخادم', err.status || 500));
+        }
+    });
+
     // تغيير كلمة المرور
     changePassword = asyncHandler(async (req: Request, res: Response) => {
         try {
@@ -50,3 +66,4 @@ export class AuthController {
 }
 
 export const authController = new AuthController();
+

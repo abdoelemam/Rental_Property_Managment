@@ -15,6 +15,7 @@ export interface PropertyAttributes {
     type: PropertyType;
     totalUnits: number;
     description?: string;
+    images?: string; // JSON array of image paths
     ownerId: number;
     isActive: boolean;
     createdAt?: Date;
@@ -31,6 +32,7 @@ class Property extends Model<PropertyAttributes, PropertyCreationAttributes> imp
     public type!: PropertyType;
     public totalUnits!: number;
     public description?: string;
+    public images?: string;
     public ownerId!: number;
     public isActive!: boolean;
     public readonly createdAt!: Date;
@@ -68,6 +70,10 @@ Property.init(
         },
         description: {
             type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        images: {
+            type: DataTypes.TEXT, // JSON array
             allowNull: true,
         },
         ownerId: {

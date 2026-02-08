@@ -1,5 +1,9 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -15,9 +19,15 @@ import leasesRoutes from './modules/leases/leases.routes';
 import invoicesRoutes from './modules/invoices/invoices.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import expensesRoutes from './modules/expenses/expenses.routes';
+import reportsRoutes from './modules/reports/reports.routes';
+import uploadRoutes from './modules/upload/upload.routes';
+import uploadS3Routes from './modules/upload/upload-s3.routes';
 
 // Import models to initialize associations
 import './DB/models';
+
+// Import Swagger config
+import { swaggerSpec } from './config/swagger.config';
 
 const app: Application = express();
 
@@ -25,17 +35,36 @@ const app: Application = express();
 // Middlewares
 // ============================================
 
+// Security - Helmet
+app.use(helmet());
+
 // CORS
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true,
 }));
 
+// Rate Limiting - 100 requests per 15 minutes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: {
+        success: false,
+        message: 'عدد الطلبات تجاوز الحد المسموح، حاول مرة أخرى بعد 15 دقيقة',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use(limiter);
+
 // Parse JSON
 app.use(express.json({ limit: '10mb' }));
 
 // Parse URL-encoded
 app.use(express.urlencoded({ extended: true }));
+
+// Static files for uploads
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ============================================
 // API Routes
@@ -52,6 +81,21 @@ app.use(`${API_PREFIX}/leases`, leasesRoutes);
 app.use(`${API_PREFIX}/invoices`, invoicesRoutes);
 app.use(`${API_PREFIX}/dashboard`, dashboardRoutes);
 app.use(`${API_PREFIX}/expenses`, expensesRoutes);
+app.use(`${API_PREFIX}/reports`, reportsRoutes);
+app.use(`${API_PREFIX}/upload`, uploadRoutes);      // Local storage
+app.use(`${API_PREFIX}/upload-s3`, uploadS3Routes); // AWS S3 storage
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Property Management API Docs',
+}));
+
+// Swagger JSON export (for Postman import)
+app.get('/api-docs.json', (req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
 
 // ============================================
 // Health Check

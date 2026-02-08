@@ -22,7 +22,7 @@ export class AuthService {
             role: UserRole.OWNER,
         });
 
-        const token = this.generateToken(user);
+        const tokens = this.generateTokens(user);
 
         return {
             user: {
@@ -31,7 +31,7 @@ export class AuthService {
                 email: user.email,
                 role: user.role,
             },
-            token,
+            ...tokens,
         };
     }
 
@@ -53,7 +53,7 @@ export class AuthService {
             throw { status: 401, message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' };
         }
 
-        const token = this.generateToken(user);
+        const tokens = this.generateTokens(user);
 
         return {
             user: {
@@ -62,8 +62,36 @@ export class AuthService {
                 email: user.email,
                 role: user.role,
             },
-            token,
+            ...tokens,
         };
+    }
+
+    // تجديد الـ Access Token
+    async refreshToken(refreshToken: string) {
+        try {
+            const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'refresh-secret';
+            const decoded = jwt.verify(refreshToken, secret) as { id: number; email: string; role: string };
+
+            const user = await User.findByPk(decoded.id);
+
+            if (!user || !user.isActive) {
+                throw { status: 401, message: 'Token غير صالح' };
+            }
+
+            const tokens = this.generateTokens(user);
+
+            return {
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+                ...tokens,
+            };
+        } catch (error) {
+            throw { status: 401, message: 'Refresh Token غير صالح أو منتهي' };
+        }
     }
 
     // تغيير كلمة المرور
@@ -99,14 +127,22 @@ export class AuthService {
         return user;
     }
 
-    // توليد JWT Token
-    private generateToken(user: User): string {
+    // توليد Access و Refresh Tokens
+    private generateTokens(user: User): { accessToken: string; refreshToken: string } {
         const payload = { id: user.id, email: user.email, role: user.role };
-        const secret = process.env.JWT_SECRET || 'your-secret-key';
-        const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
 
-        return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions);
+        const accessSecret = process.env.JWT_SECRET || 'your-secret-key';
+        const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'refresh-secret';
+
+        const accessExpiresIn = process.env.JWT_EXPIRES_IN || '15m';
+        const refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+
+        const accessToken = jwt.sign(payload, accessSecret, { expiresIn: accessExpiresIn } as jwt.SignOptions);
+        const refreshToken = jwt.sign(payload, refreshSecret, { expiresIn: refreshExpiresIn } as jwt.SignOptions);
+
+        return { accessToken, refreshToken };
     }
 }
 
 export const authService = new AuthService();
+

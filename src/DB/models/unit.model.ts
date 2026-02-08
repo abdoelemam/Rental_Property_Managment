@@ -14,10 +14,11 @@ export interface UnitAttributes {
     floor?: number;
     bedrooms?: number;
     bathrooms?: number;
-    area?: number; // بالمتر المربع
+    area?: number;
     monthlyRent: number;
     status: UnitStatus;
     description?: string;
+    images?: string; // JSON array of image paths
     isActive: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -36,6 +37,7 @@ class Unit extends Model<UnitAttributes, UnitCreationAttributes> implements Unit
     public monthlyRent!: number;
     public status!: UnitStatus;
     public description?: string;
+    public images?: string;
     public isActive!: boolean;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -87,6 +89,10 @@ Unit.init(
         },
         description: {
             type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        images: {
+            type: DataTypes.TEXT, // JSON array
             allowNull: true,
         },
         isActive: {
